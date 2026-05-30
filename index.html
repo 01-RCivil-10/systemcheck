@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SystemCheck - Oyun Gereksinimleri</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-color: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #ff4757;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            width: 100%;
+            padding: 20px;
+            background-color: var(--card-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 { margin: 0; font-size: 1.8rem; color: var(--accent-color); }
+
+        .admin-link {
+            background: none;
+            border: 2px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .admin-link:hover {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            background-color: var(--card-color);
+            border: 2px solid var(--accent-color);
+            color: white;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        #gameList {
+            margin-top: 30px;
+            display: grid;
+            gap: 15px;
+        }
+
+        .game-card {
+            background-color: var(--card-color);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid var(--accent-color);
+            text-align: left;
+            transition: transform 0.2s;
+        }
+
+        .game-card:hover { transform: scale(1.02); }
+
+        .game-title { font-size: 1.3rem; font-weight: bold; color: var(--accent-color); margin-bottom: 10px; }
+        .req { margin: 5px 0; font-size: 0.95rem; }
+        .label { color: #888; font-weight: bold; margin-right: 5px; }
+
+        .no-result { color: #666; padding: 20px; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎮 SystemCheck</h1>
+        <a href="admin.html" class="admin-link">Admin Panel</a>
+    </header>
+
+    <div class="container">
+        <input type="text" id="searchInput" placeholder="Oyun adı ara...">
+        <div id="gameList"></div>
+    </div>
+
+    <script>
+        // Varsayılan oyunlar
+        const defaultGames = [
+            { name: "Cyberpunk 2077", cpu: "Intel Core i5-3570K", gpu: "GTX 1060", ram: "8GB", os: "Windows 10" },
+            { name: "Counter-Strike 2", cpu: "Intel Core i5-7500", gpu: "GTX 1050", ram: "8GB", os: "Windows 10" },
+            { name: "GTA V", cpu: "Intel Core 2 Quad Q6600", gpu: "9800 GT", ram: "4GB", os: "Windows 10" },
+            { name: "Valorant", cpu: "Intel Core i3-10100", gpu: "Intel UHD 630", ram: "4GB", os: "Windows 10" },
+            { name: "Minecraft", cpu: "Intel Core i5-4690", gpu: "GTX 960", ram: "8GB", os: "Windows 10" }
+        ];
+
+        // LocalStorage'dan oyunları al, yoksa varsayılanları yükle
+        let storedGames = localStorage.getItem('games');
+        let games = storedGames ? JSON.parse(storedGames) : defaultGames;
+        if(!storedGames) {
+            localStorage.setItem('games', JSON.stringify(defaultGames));
+        }
+
+        const searchInput = document.getElementById('searchInput');
+        const gameList = document.getElementById('gameList');
+
+        // Renk ayarlarını yükle
+        function loadSettings() {
+            const colors = JSON.parse(localStorage.getItem('siteColors'));
+            if(colors) {
+                document.documentElement.style.setProperty('--accent-color', colors.accent);
+                document.documentElement.style.setProperty('--bg-color', colors.bg);
+                document.documentElement.style.setProperty('--card-color', colors.card);
+                document.documentElement.style.setProperty('--text-color', colors.text);
+            }
+        }
+
+        // Oyunları listele
+        function renderGames(filter = "") {
+            gameList.innerHTML = "";
+            const filtered = games.filter(g => g.name.toLowerCase().includes(filter.toLowerCase()));
+
+            if(filtered.length === 0) {
+                gameList.innerHTML = "<p class='no-result'>Oyun bulunamadı.</p>";
+                return;
+            }
+
+            filtered.forEach(game => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.innerHTML = `
+                    <div class="game-title">${game.name}</div>
+                    <div class="req"><span class="label">💻 İşlemci:</span> ${game.cpu}</div>
+                    <div class="req"><span class="label">🎮 Ekran Kartı:</span> ${game.gpu}</div>
+                    <div class="req"><span class="label">🧠 RAM:</span> ${game.ram}</div>
+                    <div class="req"><span class="label">💾 İşletim Sistemi:</span> ${game.os}</div>
+                `;
+                gameList.appendChild(card);
+            });
+        }
+
+        // Arama
+        searchInput.addEventListener('input', (e) => {
+            renderGames(e.target.value);
+        });
+
+        loadSettings();
+        renderGames();
+    </script>
+</body>
+</html>

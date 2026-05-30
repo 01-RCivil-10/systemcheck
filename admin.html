@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - SystemCheck</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #ff4757;
+            margin-bottom: 20px;
+        }
+
+        .login-box, .panel-box {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 600px;
+            display: none;
+        }
+
+        .show {
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #ff4757;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: #ff4757;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        .section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .section h3 {
+            margin-bottom: 15px;
+            color: #ff4757;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .game-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2a2a2a;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+
+        .game-name {
+            font-weight: bold;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            width: auto;
+            padding: 5px 12px;
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .back-btn {
+            background: #555;
+            display: inline-block;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            margin-top: 20px;
+            color: white;
+            text-align: center;
+        }
+
+        .back-btn:hover {
+            background: #666;
+        }
+
+        #message {
+            text-align: center;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            display: none;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .msg-success {
+            background: #27ae60;
+            display: block;
+        }
+
+        .msg-error {
+            background: #e74c3c;
+            display: block;
+        }
+
+        .empty-msg {
+            color: #666;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🛠️ Admin Panel</h1>
+
+    <div id="message"></div>
+
+    <!-- Giriş Ekranı -->
+    <div id="loginScreen" class="login-box show">
+        <h2 style="text-align: center; margin-bottom: 20px;">Giriş Yap</h2>
+        <input type="text" id="username" placeholder="Kullanıcı Adı (DarkPulse)">
+        <input type="password" id="password" placeholder="Şifre (1w2e3r4t)">
+        <button onclick="login()">Giriş</button>
+        <p id="loginError" style="color: #e74c3c; text-align: center; margin-top: 10px;"></p>
+        <a href="index.html" class="back-btn" style="text-align: center;">← Ana Siteye Dön</a>
+    </div>
+
+    <!-- Yönetim Panel -->
+    <div id="adminPanel" class="panel-box">
+        
+        <!-- Oyun Ekle -->
+        <div class="section">
+            <h3>➕ Yeni Oyun Ekle</h3>
+            <input type="text" id="gameName" placeholder="Oyun Adı *">
+            <input type="text" id="gameCpu" placeholder="İşlemci (örn: Intel Core i5-10400)">
+            <input type="text" id="gameGpu" placeholder="Ekran Kartı (örn: RTX 3060)">
+            <input type="text" id="gameRam" placeholder="RAM (örn: 16GB)">
+            <input type="text" id="gameOs" placeholder="İşletim Sistemi (örn: Windows 10)">
+            <button onclick="addGame()">Oyunu Kaydet</button>
+        </div>
+
+        <!-- Oyun Listesi / Sil -->
+        <div class="section">
+            <h3>📋 Mevcut Oyunları Yönet</h3>
+            <div id="gamesList"></div>
+        </div>
+
+        <!-- Renk Ayarları -->
+        <div class="section">
+            <h3>🎨 Site Renk Ayarları</h3>
+            <div class="color-grid">
+                <input type="text" id="accentColor" placeholder="Aksiyon Rengi (#ff4757)">
+                <input type="text" id="bgColor" placeholder="Arka Plan (#121212)">
+                <input type="text" id="cardColor" placeholder="Kart Rengi (#1e1e1e)">
+                <input type="text" id="textColor" placeholder="Yazı Rengi (#e0e0e0)">
+            </div>
+            <button onclick="saveColors()">Renkleri Kaydet</button>
+            <button onclick="resetColors()" style="background: #555;">Varsayılana Sıfırla</button>
+        </div>
+
+        <button onclick="logout()" style="background: #333; margin-top: 10px;">Çıkış Yap</button>
+
+    </div>
+
+    <script>
+        // Admin Bilgileri
+        const ADMIN_USER = "DarkPulse";
+        const ADMIN_PASS = "1w2e3r4t";
+
+        // Giriş Fonksiyonu
+        function login() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            if(user === ADMIN_USER && pass === ADMIN_PASS) {
+                document.getElementById('loginScreen').classList.remove('show');
+                document.getElementById('adminPanel').classList.add('show');
+                loadGames();
+                loadColors();
+            } else {
+                document.getElementById('loginError').innerText = "❌ Yanlış kullanıcı adı veya şifre!";
+            }
+        }
+
+        // Mesaj Göster
+        function showMsg(text, type) {
+            const msg = document.getElementById('message');
+            msg.innerText = text;
+            msg.className = type === "success" ? "msg-success" : "msg-error";
+            setTimeout(() => {
+                msg.style.display = "none";
+            }, 3000);
+        }
+
+        // ----- OYUN İŞLEMLERİ -----
+
+        // Oyunları Getir
+        function getGames() {
+            return JSON.parse(localStorage.getItem('games')) || [];
+        }
+
+        // Oyun Ekle
+        function addGame() {
+            const name = document.getElementById('gameName').value;
+            const cpu = document.getElementById('gameCpu').value;
+            const gpu = document.getElementById('gameGpu').value;
+            const ram = document.getElementById('gameRam').value;
+            const os = document.getElementById('gameOs').value;
+
+            if(!name.trim()) {
+                showMsg("⚠️ Oyun adı zorunludur!", "error");
+                return;
+            }
+
+            const games = getGames();
+            
+            // Aynı isimde oyun var mı kontrol et
+            if(games.some(g => g.name.toLowerCase() === name.toLowerCase())) {
+                showMsg("⚠️ Bu oyun zaten var!", "error");
+                return;
+            }
+
+            // Yeni oyunu ekle
+            games.push({ name, cpu, gpu, ram, os });
+            localStorage.setItem('games', JSON.stringify(games));
+
+            showMsg("✅ Oyun başarıyla eklendi!", "success");
+            
+            // Formu temizle
+            document.getElementById('gameName').value = "";
+            document.getElementById('gameCpu').value = "";
+            document.getElementById('gameGpu').value = "";
+            document.getElementById('gameRam').value = "";
+            document.getElementById('gameOs').value = "";
+            
+            loadGames();
+        }
+
+        // Oyun Sil
+        function deleteGame(index) {
+            if(confirm("Bu oyunu silmek istediğinize emin misiniz?")) {
+                let games = getGames();
+                games.splice(index, 1);
+                localStorage.setItem('games', JSON.stringify(games));
+                loadGames();
+                showMsg("🗑️ Oyun silindi!", "success");
+            }
+        }
+
+        // Oyunları Listele
+        function loadGames() {
+            const games = getGames();
+            const list = document.getElementById('gamesList');
+            list.innerHTML = "";
+
+            if(games.length === 0) {
+                list.innerHTML = "<p class='empty-msg'>Henüz oyun eklenmemiş.</p>";
+                return;
+            }
+
+            games.forEach((game, index) => {
+                const item = document.createElement('div');
+                item.className = 'game-item';
+                item.innerHTML = `
+                    <span class="game-name">${game.name}</span>
+                    <button class="delete-btn" onclick="deleteGame(${index})">Sil</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // ----- RENK İŞLEMLERİ -----
+
+        // Renkleri Kaydet
+        function saveColors() {
+            const colors = {
+                accent: document.getElementById('accentColor').value || "#ff4757",
+                bg: document.getElementById('bgColor').value || "#121212",
+                card: document.getElementById('cardColor').value || "#1e1e1e",
+                text: document.getElementById('textColor').value || "#e0e0e0"
+            };
+            localStorage.setItem('siteColors', JSON.stringify(colors));
+            showMsg("✅ Renk ayarları kaydedildi!", "success");
+        }
+
+        // Renkleri Yükle
+        function loadColors() {
+            const colors = JSON.parse(localStorage.getItem('siteColors'));
+            if(colors) {
+                document.getElementById('accentColor').value = colors.accent;
+                document.getElementById('bgColor').value = colors.bg;
+                document.getElementById('cardColor').value = colors.card;
+                document.getElementById('textColor').value = colors.text;
+            }
+        }
+
+        // Renkleri Sıfırla
+        function resetColors() {
+            localStorage.removeItem('siteColors');
+            showMsg("✅ Renkler varsayılana sıfırlandı!", "success");
+            loadColors();
+        }
+
+        // Çıkış
+        function logout() {
+            document.getElementById('adminPanel').classList.remove('show');
+            document.getElementById('loginScreen').classList.add('show');
+            document.getElementById('username').value = "";
+            document.getElementById('password').value = "";
+            document.getElementById('loginError').innerText = "";
+        }
+    </script>
+</body>
+</html>
